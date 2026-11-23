@@ -56,6 +56,68 @@
   }
   #app { width: 100%; overflow-x: clip; }
 
+  .hero-video-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      background: #f8fafc;
+      pointer-events: none;
+      transition: opacity 700ms ease;
+  }
+  .hero-video-layer::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: #fff;
+      opacity: 0;
+  }
+  .hero-video {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: center;
+  }
+  .hero-video-control {
+      position: absolute;
+      z-index: 60;
+      right: 20px;
+      bottom: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 0 13px;
+      border: 1px solid rgba(15, 23, 42, .12);
+      border-radius: 999px;
+      background: rgba(255,255,255,.82);
+      color: #172554;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 4px 16px rgba(15,23,42,.1);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      cursor: pointer;
+      pointer-events: auto;
+      transition: background .2s ease, transform .2s ease;
+  }
+  .hero-video-control[hidden] { display: none; }
+  .cta-wrapper {
+      min-height: 100%;
+      background-color: var(--color-background);
+  }
+  .hero-video-control:hover { background: #fff; transform: translateY(-1px); }
+  .hero-video-control:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }
+  .hero-video-control svg { width: 16px; height: 16px; fill: currentColor; }
+  @media (max-width: 640px) {
+      .hero-video-control { right: 12px; bottom: 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+      .hero-video-control, .hero-video-layer { transition: none; }
+  }
+
   /* Fixed main navigation; placed outside #app so the hero's pin/overflow
      containers cannot clip it or create a lower stacking context. */
   .main-nav-wrap {
@@ -63,6 +125,7 @@
       top: 18px;
       right: 20px;
       z-index: 10000;
+      isolation: isolate;
       pointer-events: none;
   }
   .main-glass-nav {
@@ -80,6 +143,7 @@
       -webkit-backdrop-filter: blur(20px) saturate(170%);
       backdrop-filter: blur(20px) saturate(170%);
       box-shadow: 0 10px 32px rgba(15, 23, 42, 0.16), inset 0 1px 0 rgba(255,255,255,.9);
+      opacity: 1;
   }
   .main-nav-list {
       position: relative;
@@ -89,6 +153,21 @@
       margin: 0;
       padding: 0;
       list-style: none;
+  }
+  .main-nav-indicator {
+      position: absolute;
+      z-index: 0;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 0;
+      border: 1px solid rgba(37, 99, 235, 0.24);
+      border-radius: 999px;
+      background: linear-gradient(180deg, #fff 0%, #eaf0ff 100%);
+      box-shadow: 0 3px 12px rgba(37, 99, 235, 0.14), inset 0 1px 0 #fff;
+      pointer-events: none;
+      transition: transform 380ms cubic-bezier(.22, 1, .36, 1), width 380ms cubic-bezier(.22, 1, .36, 1), height 380ms cubic-bezier(.22, 1, .36, 1);
+      will-change: transform, width;
   }
   .main-nav-link {
       position: relative;
@@ -104,12 +183,21 @@
       font-weight: 600;
       text-decoration: none;
       white-space: nowrap;
-      transition: color .2s ease, background .2s ease;
+      transform: scale(.96);
+      opacity: .56;
+      transition: color .25s ease, opacity .3s ease, transform .3s cubic-bezier(.22, 1, .36, 1);
   }
   .main-nav-link:hover,
   .main-nav-link[aria-current="page"] {
       color: var(--nav-active);
-      background: rgba(255,255,255,.82);
+  }
+  .main-nav-link[aria-current="page"] {
+      transform: scale(1.04);
+      opacity: 1;
+  }
+  .main-nav-link:hover:not([aria-current="page"]) {
+      opacity: .82;
+      transform: scale(1);
   }
   .main-nav-link:focus-visible,
   .main-nav-toggle:focus-visible {
@@ -165,9 +253,10 @@
       }
       .main-glass-nav.is-open .main-nav-list { display: flex; }
       .main-nav-link { width: 100%; min-height: 44px; }
+      .main-nav-indicator { height: 0; }
   }
   @media (prefers-reduced-motion: reduce) {
-      .main-nav-link { transition: none; }
+      .main-nav-link, .main-nav-indicator { transition: none; }
   }
 
   .gsap-reveal { visibility: hidden; }
@@ -476,6 +565,7 @@
       <span>Menu</span>
     </button>
     <ul class="main-nav-list" id="main-nav-list">
+      <li class="main-nav-indicator" aria-hidden="true"></li>
       <li><a class="main-nav-link" href="#hero" aria-current="page">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10.5 9-7.5 9 7.5"/><path d="M5 9.5V20h5v-5h4v5h5V9.5"/></svg>
         <span>Home</span>
@@ -493,6 +583,11 @@
 </div>
 <div id="app">
   <div id="hero" class="relative w-full h-screen overflow-hidden flex items-center justify-center bg-background text-foreground font-sans antialiased" style="perspective: 1500px; scroll-margin-top: 90px;">
+    <div class="hero-video-layer" aria-hidden="true">
+      <video id="heroVideo" class="hero-video" poster="assets/videos/Dr-poster.jpg" muted playsinline loop preload="metadata" tabindex="-1" aria-hidden="true">
+        <source src="assets/videos/Dr-ping-pong.mp4" type="video/mp4">
+      </video>
+    </div>
     <div class="film-grain" aria-hidden="true"></div>
     <div class="bg-grid-theme absolute inset-0 z-0 pointer-events-none opacity-50" aria-hidden="true"></div>
 
@@ -503,8 +598,14 @@
       <h1 class="text-days gsap-reveal text-silver-matte text-5xl md:text-7xl lg:text-[6rem] font-extrabold tracking-tighter">Alpha Delta Veterinary Clinic.</h1>
     </div>
 
+    <button class="hero-video-control" type="button" aria-label="Pause hero background video" aria-pressed="false" title="Pause background video" hidden>
+      <svg class="hero-video-pause-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>
+      <svg class="hero-video-play-icon" viewBox="0 0 16 16" aria-hidden="true" hidden><path d="M4 2.5v11l9-5.5z"/></svg>
+      <span class="hero-video-control-label">Pause motion</span>
+    </button>
+
     <!-- BACKGROUND LAYER 2: Tactile CTA buttons -->
-    <div class="cta-wrapper absolute z-10 flex flex-col items-center justify-center text-center w-full px-4 gsap-reveal pointer-events-auto will-change-transform">
+    <div id="about" class="cta-wrapper absolute z-10 flex flex-col items-center justify-center text-center w-full px-4 gsap-reveal pointer-events-auto will-change-transform">
       <h2 class="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight text-silver-matte">About Alpha Delta<br>Veterinary Clinic</h2>
       <p class="text-muted-foreground text-lg md:text-xl mb-12 max-w-xl mx-auto font-light leading-relaxed">At Alpha Delta Vets, we understand that pets are family. Our clinic is staffed with a dedicated team of veterinary professionals who are committed to offering compassionate and quality care. With state-of-the-art facilities and a wide range of services, we strive to meet all your pet's health needs. We believe in building lasting relationships with our clients and their pets, ensuring that every visit is a positive experience. Join us in our mission to provide the best care for your furry companions..</p>
       <div class="flex flex-col sm:flex-row gap-6">
@@ -915,6 +1016,7 @@
       .to([".mockup-scroll-wrapper", ".floating-badge", ".card-left-text", ".card-right-text"], {
         scale: 0.9, y: -40, z: -200, autoAlpha: 0, ease: "power3.in", duration: 1.2, stagger: 0.05
       })
+      .to(".hero-video-layer", { autoAlpha: 0, duration: 1.2, ease: "power2.out" }, "<")
       .to(".main-card", {
         width: isMobile ? "92vw" : "85vw",
         height: isMobile ? "92vh" : "85vh",
@@ -923,8 +1025,9 @@
         duration: 1.8
       }, "pullback")
       .to(".cta-wrapper", { scale: 1, filter: "blur(0px)", ease: "expo.inOut", duration: 1.8 }, "pullback")
-      .addLabel("about")
-      .to(".main-card", { y: -window.innerHeight - 300, ease: "power3.in", duration: 1.5 });
+      .to(".main-card", { y: -window.innerHeight - 300, ease: "power3.in", duration: 1.5 })
+      .set(".main-card", { autoAlpha: 0 })
+      .addLabel("about");
   }, container);
 
   window.addEventListener("load", function () { ScrollTrigger.refresh(); });
@@ -937,20 +1040,105 @@
 </script>
 <script>
 (function () {
+  var hero = document.getElementById("hero");
+  var video = document.getElementById("heroVideo");
+  var control = document.querySelector(".hero-video-control");
+  if (!hero || !video || !control) return;
+
+  var playIcon = control.querySelector(".hero-video-play-icon");
+  var pauseIcon = control.querySelector(".hero-video-pause-icon");
+  var label = control.querySelector(".hero-video-control-label");
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var userPaused = reduceMotion.matches;
+  var heroVisible = true;
+
+  function syncControl(isPlaying) {
+    control.hidden = false;
+    playIcon.hidden = isPlaying;
+    pauseIcon.hidden = !isPlaying;
+    control.setAttribute("aria-pressed", String(!isPlaying));
+    control.setAttribute("aria-label", isPlaying ? "Pause hero background video" : "Play hero background video");
+    control.title = isPlaying ? "Pause background video" : "Play background video";
+    label.textContent = isPlaying ? "Pause motion" : "Play motion";
+  }
+
+  function syncPlayback() {
+    if (userPaused || !heroVisible || document.hidden) {
+      video.pause();
+      if (userPaused) syncControl(false);
+      return;
+    }
+    var playRequest = video.play();
+    if (playRequest && typeof playRequest.catch === "function") {
+      playRequest.catch(function () { syncControl(false); });
+    }
+  }
+
+  control.addEventListener("click", function () {
+    userPaused = !video.paused;
+    syncPlayback();
+  });
+
+  video.addEventListener("play", function () { syncControl(true); });
+  video.addEventListener("pause", function () { syncControl(false); });
+
+  if ("IntersectionObserver" in window) {
+    var observer = new IntersectionObserver(function (entries) {
+      heroVisible = entries.some(function (entry) { return entry.isIntersecting; });
+      syncPlayback();
+    }, { threshold: 0.05 });
+    observer.observe(hero);
+  }
+
+  document.addEventListener("visibilitychange", syncPlayback);
+  if (reduceMotion.addEventListener) {
+    reduceMotion.addEventListener("change", function (event) {
+      if (event.matches) userPaused = true;
+      syncPlayback();
+    });
+  }
+
+  syncPlayback();
+})();
+</script>
+<script>
+(function () {
   var nav = document.querySelector(".main-glass-nav");
   if (!nav) return;
 
   var toggle = nav.querySelector(".main-nav-toggle");
   var links = Array.from(nav.querySelectorAll(".main-nav-link"));
+  var navList = nav.querySelector(".main-nav-list");
+  var indicator = nav.querySelector(".main-nav-indicator");
   var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   var aboutScroll = null;
+  var navSpyFrame = 0;
+  var pendingNavigation = null;
+  var pendingNavigationTimer = 0;
+
+  function moveIndicator() {
+    var active = links.find(function (link) { return link.getAttribute("aria-current") === "page"; });
+    if (!active || !indicator) return;
+    var listRect = navList.getBoundingClientRect();
+    var activeRect = active.getBoundingClientRect();
+    if (!listRect.width || !activeRect.width) return;
+    indicator.style.width = activeRect.width + "px";
+    indicator.style.height = activeRect.height + "px";
+    indicator.style.transform = "translate(" + (activeRect.left - listRect.left) + "px, " + (activeRect.top - listRect.top) + "px)";
+  }
 
   function getAboutScroll() {
+    var trigger = getHeroTrigger();
+    if (!trigger) return null;
+    var aboutPosition = trigger.labelToScroll("about");
+    return Number.isFinite(aboutPosition) ? aboutPosition : null;
+  }
+
+  function getHeroTrigger() {
     if (!window.ScrollTrigger) return null;
-    var trigger = ScrollTrigger.getAll().find(function (item) {
+    return ScrollTrigger.getAll().find(function (item) {
       return item.trigger && item.trigger.id === "hero";
-    });
-    return trigger ? trigger.labelToScroll("about") : null;
+    }) || null;
   }
 
   function setActive(id) {
@@ -958,23 +1146,42 @@
       if (link.getAttribute("href") === "#" + id) link.setAttribute("aria-current", "page");
       else link.removeAttribute("aria-current");
     });
+    moveIndicator();
+  }
+
+  function clearPendingNavigation() {
+    pendingNavigation = null;
+    window.clearTimeout(pendingNavigationTimer);
+    pendingNavigationTimer = 0;
   }
 
   function updateActive() {
+    navSpyFrame = 0;
     var services = document.getElementById("services");
+    if (pendingNavigation && Math.abs(window.scrollY - pendingNavigation.position) > 48) return;
+    if (pendingNavigation) clearPendingNavigation();
+    var trigger = getHeroTrigger();
     aboutScroll = getAboutScroll();
-    if (services && window.scrollY >= services.offsetTop - window.innerHeight * 0.35) {
+    if (trigger && window.scrollY >= trigger.start && window.scrollY < trigger.end) {
+      setActive(aboutScroll !== null && window.scrollY >= aboutScroll - 2 ? "about" : "hero");
+    } else if (services && window.scrollY >= services.offsetTop - window.innerHeight * 0.35) {
       setActive("services");
-    } else if (aboutScroll !== null && window.scrollY >= aboutScroll - 80) {
+    } else if (aboutScroll !== null && window.scrollY >= aboutScroll) {
       setActive("about");
     } else {
       setActive("hero");
     }
   }
 
+  function scheduleActiveUpdate() {
+    if (navSpyFrame) return;
+    navSpyFrame = window.requestAnimationFrame(updateActive);
+  }
+
   toggle.addEventListener("click", function () {
     var isOpen = nav.classList.toggle("is-open");
     toggle.setAttribute("aria-expanded", String(isOpen));
+    if (isOpen) requestAnimationFrame(moveIndicator);
   });
 
   links.forEach(function (link) {
@@ -984,15 +1191,22 @@
       if (!target) return;
       event.preventDefault();
 
-      var destination = id === "about" ? getAboutScroll() : null;
+      var destination = id === "hero" ? 0 : (id === "about" ? getAboutScroll() : null);
       if (destination === null) {
         destination = target.getBoundingClientRect().top + window.scrollY;
       }
-      window.scrollTo({ top: destination, behavior: reducedMotion.matches ? "auto" : "smooth" });
-      history.replaceState(null, "", "#" + id);
+      clearPendingNavigation();
+      pendingNavigation = { id: id, position: destination };
+      pendingNavigationTimer = window.setTimeout(function () {
+        clearPendingNavigation();
+        updateActive();
+      }, 10000);
       setActive(id);
       nav.classList.remove("is-open");
       toggle.setAttribute("aria-expanded", "false");
+      history.replaceState(null, "", "#" + id);
+
+      window.scrollTo({ top: destination, behavior: reducedMotion.matches ? "auto" : "smooth" });
     });
   });
 
@@ -1010,11 +1224,33 @@
     }
   });
 
-  window.addEventListener("scroll", updateActive, { passive: true });
+  window.addEventListener("scroll", scheduleActiveUpdate, { passive: true });
+  ["wheel", "touchstart"].forEach(function (eventName) {
+    window.addEventListener(eventName, function () {
+      if (!pendingNavigation) return;
+      clearPendingNavigation();
+      scheduleActiveUpdate();
+    }, { passive: true });
+  });
+  window.addEventListener("scrollend", function () {
+    if (!pendingNavigation) return;
+    clearPendingNavigation();
+    scheduleActiveUpdate();
+  });
   window.addEventListener("resize", updateActive);
+  window.addEventListener("resize", moveIndicator);
   window.addEventListener("load", updateActive);
-  if (window.ScrollTrigger) ScrollTrigger.addEventListener("refresh", updateActive);
+  window.addEventListener("load", moveIndicator);
+  if (window.ResizeObserver) {
+    var navResizeObserver = new ResizeObserver(moveIndicator);
+    navResizeObserver.observe(navList);
+    links.forEach(function (link) { navResizeObserver.observe(link); });
+  }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(moveIndicator);
+  if (window.ScrollTrigger) ScrollTrigger.addEventListener("refresh", scheduleActiveUpdate);
   updateActive();
+  moveIndicator();
+  requestAnimationFrame(function () { requestAnimationFrame(moveIndicator); });
 })();
 </script>
 <script>
