@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glass Navigation Bar</title>
+<style>
+  /* ============ CUSTOMIZE HERE ============ */
+  :root {
+    --glass-bg: rgba(236, 255, 251, 0.30);          /* bar tint at top of page */
+    --glass-bg-scrolled: rgba(236, 255, 251, 0.55); /* bar tint after scrolling */
+    --blur: 18px;                                   /* blur strength at top */
+    --blur-scrolled: 28px;                          /* blur strength after scroll */
+    --text: #5b6475;                                /* inactive label color */
+    --text-active: #0f172a;                         /* active label color */
+    --speed: 340ms;                                 /* indicator slide speed */
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);     /* snappy start, soft landing */
+    --idle-opacity: 0.55;                           /* opacity of non-selected items */
+    --shimmer-speed: 6s;                            /* border light sweep loop */
+  }
+  /* ======================================== */
+
+  @property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: #0f172a;
+    background: #dfe9f5;
+  }
+
+  /* ---------- NAV ---------- */
+  .nav-wrap {
+    position: fixed; top: 20px; left: 0; right: 0;
+    display: flex; justify-content: center;
+    z-index: 1000; pointer-events: none; padding: 0 12px;
+  }
+  .glass-nav {
+    pointer-events: auto;
+    position: relative;
+    width: min(740px, 100%);
+    border-radius: 999px;
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: blur(var(--blur)) saturate(160%);
+    backdrop-filter: blur(var(--blur)) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    box-shadow:
+      0 10px 35px rgba(30, 60, 110, 0.14),
+      inset 0 1px 0 rgba(255, 255, 255, 0.85),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.25);
+    padding: 8px;
+    transition: background .4s var(--ease), box-shadow .4s var(--ease),
+                -webkit-backdrop-filter .4s var(--ease), backdrop-filter .4s var(--ease);
+    animation: navIn .9s var(--ease) both;
+  }
+  .glass-nav.scrolled {
+    background: var(--glass-bg-scrolled);
+    -webkit-backdrop-filter: blur(var(--blur-scrolled)) saturate(180%);
+    backdrop-filter: blur(var(--blur-scrolled)) saturate(180%);
+    box-shadow:
+      0 14px 40px rgba(30, 60, 110, 0.20),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.3);
+  }
+  @keyframes navIn {
+    from { opacity: 0; transform: translateY(-20px); filter: blur(8px); }
+    to   { opacity: 1; transform: translateY(0);     filter: none; }
+  }
+
+  .track { position: relative; }
+  .nav-list {
+    position: relative; display: flex; justify-content: space-between;
+    align-items: center; list-style: none; gap: 2px;
+  }
+
+  /* sliding glass indicator */
+  .indicator {
+    position: absolute; top: 0; left: 0; height: 100%; width: 0;
+    border-radius: 999px; z-index: 0; pointer-events: none;
+    background: linear-gradient(180deg, rgba(255,255,255,.85), rgba(240,255,252,.55));
+    box-shadow: 0 6px 18px rgba(40, 80, 130, 0.16), inset 0 1px 0 #fff;
+    transition: transform var(--speed) var(--ease-out), width var(--speed) var(--ease-out);
+    will-change: transform, width;
+  }
+  /* iridescent border */
+  .indicator::before {
+    content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 2px;
+    background: conic-gradient(from var(--angle),
+      #7be6e0, #bfe9ff, #ffc6e0, #fff3b0, #a8f0d8, #7be6e0);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    animation: shimmer var(--shimmer-speed) linear infinite;
+  }
+  @keyframes shimmer { to { --angle: 360deg; } }
+
+  .nav-link {
+    position: relative; z-index: 1; overflow: hidden;
+    display: flex; align-items: center; gap: 10px;
+    padding: 13px 22px; border-radius: 999px;
+    color: var(--text); text-decoration: none;
+    font-size: 15.5px; font-weight: 500; white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+    transition: color .3s var(--ease), transform .25s var(--ease), background .3s var(--ease);
+  }
+  .nav-link svg {
+    width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor;
+    stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+    transition: transform .3s var(--ease);
+  }
+  .nav-link:hover {
+    color: var(--text-active); transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.28);
+    box-shadow: 0 0 18px rgba(255, 255, 255, 0.55);
+  }
+  .nav-link:hover svg { transform: scale(1.08); }
+
+  /* every label stays visible but dimmed, so the selected one stands out */
+  .nav-link .label, .nav-link svg {
+    opacity: var(--idle-opacity);
+    transition: opacity .18s ease-out, transform .25s var(--ease-out);
+  }
+  .nav-link:hover .label, .nav-link:hover svg { opacity: 0.9; }
+  .nav-link[aria-current="page"] .label,
+  .nav-link[aria-current="page"] svg { opacity: 1; }
+  .nav-link[aria-current="page"] .label { font-weight: 600; }
+  .nav-link:active { transform: scale(0.96); }
+  .nav-link[aria-current="page"] { color: var(--text-active); background: transparent; box-shadow: none; }
+  .nav-link:focus-visible { outline: 2px solid #3aa7c9; outline-offset: 2px; }
+
+  .ripple {
+    position: absolute; border-radius: 50%; pointer-events: none;
+    background: rgba(255, 255, 255, 0.75); transform: scale(0);
+    animation: ripple .6s ease-out forwards;
+  }
+  @keyframes ripple { to { transform: scale(1); opacity: 0; } }
+
+  /* ---------- DEMO SECTIONS (delete on your site) ---------- */
+  section {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+    padding: 120px 24px; position: relative; overflow: hidden;
+  }
+  section h2 { font-size: clamp(32px, 6vw, 60px); margin-bottom: 12px; }
+  section p { max-width: 480px; color: #334155; }
+  #home     { background: linear-gradient(135deg, #a8d8ff, #d9c6ff); }
+  #about    { background: linear-gradient(135deg, #ffd6e6, #ffe9c2); }
+  #services { background: linear-gradient(135deg, #bff5e1, #b9e0ff); }
+  #gallery  { background: linear-gradient(135deg, #ffe7a8, #ffc2c2); }
+  #location { background: linear-gradient(135deg, #c9d6ff, #e2c9ff); }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 860px) {
+    .nav-link { padding: 12px 16px; font-size: 14.5px; }
+  }
+  @media (max-width: 640px) {
+    .nav-wrap { top: auto; bottom: 16px; }
+    .glass-nav { width: 96%; padding: 5px; }
+    @keyframes navIn {
+      from { opacity: 0; transform: translateY(20px); filter: blur(8px); }
+      to   { opacity: 1; transform: translateY(0);    filter: none; }
+    }
+    /* icon with the text beside it; nothing changes size on click, so the pill never lags */
+    .nav-list { gap: 0; }
+    .nav-list li { flex: 1 1 auto; min-width: 0; }
+    .nav-link { width: 100%; justify-content: center; gap: 5px; padding: 12px 6px; font-size: 10.5px; }
+    .nav-link svg { width: 16px; height: 16px; }
+  }
+
+  /* very narrow phones: not enough width for icon + text side by side, so stack them */
+  @media (max-width: 350px) {
+    .nav-link { flex-direction: column; gap: 3px; padding: 9px 2px; font-size: 9.5px; }
+    .nav-link svg { width: 18px; height: 18px; }
+  }
+
+  /* ---------- REDUCED MOTION ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .glass-nav, .indicator, .indicator::before, .nav-link, .nav-link svg, .ripple {
+      animation: none !important; transition: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= NAV (copy from here) ================= -->
+<div class="nav-wrap">
+  <nav class="glass-nav" aria-label="Main">
+    <div class="track">
+    <span class="indicator" aria-hidden="true"></span>
+    <ul class="nav-list">
+
+      <li><a class="nav-link" href="#home" aria-current="page">
+        <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h5v-5h4v5h5V9.5"/></svg>
+        <span class="label">Home</span></a></li>
+
+      <li><a class="nav-link" href="#about">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg>
+        <span class="label">About Us</span></a></li>
+
+      <li><a class="nav-link" href="#services">
+        <svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>
+        <span class="label">Services</span></a></li>
+
+      <li><a class="nav-link" href="#gallery">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-8 8"/></svg>
+        <span class="label">Gallery</span></a></li>
+
+      <li><a class="nav-link" href="#location">
+        <svg viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+        <span class="label">Location</span></a></li>
+    </ul>
+    </div>
+  </nav>
+</div>
+<!-- ================= NAV (to here) ================= -->
+
+<!-- Demo sections: replace with your own content, keep the ids -->
+<section id="home"><h2>Home</h2><p>Scroll down and watch the glass pill follow you.</p></section>
+<section id="about"><h2>About Us</h2><p>Tell your story here.</p></section>
+<section id="services"><h2>Services</h2><p>What you offer goes here.</p></section>
+<section id="gallery"><h2>Gallery</h2><p>Show your best work.</p></section>
+<section id="location"><h2>Location</h2><p>Where to find you.</p></section>
+
+<script>
+(function () {
+  const nav = document.querySelector('.glass-nav');
+  const list = nav.querySelector('.nav-list');
+  const track = nav.querySelector('.track');
+  const indicator = nav.querySelector('.indicator');
+  const links = [...nav.querySelectorAll('.nav-link')];
+  let active = links[0];
+  let lockUntil = 0;
+
+  function moveIndicator() {
+    // offsetLeft/offsetWidth ignore hover/press transforms, so the pill never drifts.
+    // The link's offsetParent is the list, and the list sits inside the track.
+    const x = list.offsetLeft + active.offsetLeft;
+    indicator.style.width = active.offsetWidth + 'px';
+    indicator.style.transform = 'translateX(' + x + 'px)';
+  }
+
+  function setActive(link) {
+    if (link === active) return;
+    links.forEach(l => l.removeAttribute('aria-current'));
+    link.setAttribute('aria-current', 'page');
+    active = link;
+    moveIndicator();
+  }
+
+  // initial position (no animation on first paint)
+  indicator.style.transition = 'none';
+  moveIndicator();
+  requestAnimationFrame(() => requestAnimationFrame(() => (indicator.style.transition = '')));
+
+  // follow size changes (mobile label expand, window resize, font load)
+  const ro = new ResizeObserver(moveIndicator);
+  links.forEach(l => ro.observe(l));
+  ro.observe(track);
+  // re-sync when a mobile label finishes expanding/collapsing
+  nav.addEventListener('transitionend', e => {
+    if (e.target.classList.contains('label')) moveIndicator();
+  });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(moveIndicator);
+  window.addEventListener('resize', moveIndicator);
+  window.addEventListener('load', moveIndicator);
+
+  // click: ripple + set active + smooth scroll
+  links.forEach(link => {
+    link.addEventListener('click', e => {
+      const rect = link.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height) * 2;
+      const r = document.createElement('span');
+      r.className = 'ripple';
+      r.style.width = r.style.height = size + 'px';
+      r.style.left = (e.clientX - rect.left - size / 2) + 'px';
+      r.style.top = (e.clientY - rect.top - size / 2) + 'px';
+      link.appendChild(r);
+      r.addEventListener('animationend', () => r.remove());
+
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        lockUntil = Date.now() + 800; // ignore scroll-spy while smooth scrolling
+        setActive(link);
+        target.scrollIntoView({ behavior: 'smooth' });
+        history.replaceState(null, '', link.getAttribute('href'));
+      }
+    });
+  });
+
+  // scroll spy
+  const spy = new IntersectionObserver(entries => {
+    if (Date.now() < lockUntil) return;
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const link = links.find(l => l.getAttribute('href') === '#' + entry.target.id);
+        if (link) setActive(link);
+      }
+    });
+  }, { rootMargin: '-45% 0px -45% 0px' });
+  links.forEach(l => {
+    const sec = document.querySelector(l.getAttribute('href'));
+    if (sec) spy.observe(sec);
+  });
+
+  // glass gets stronger after scrolling
+  const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 20);
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // arrow-key navigation
+  nav.addEventListener('keydown', e => {
+    const i = links.indexOf(document.activeElement);
+    if (i < 0) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); links[(i + 1) % links.length].focus(); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); links[(i - 1 + links.length) % links.length].focus(); }
+  });
+})();
+</script>
+</body>
+</html>
