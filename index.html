@@ -504,7 +504,7 @@
     </div>
 
     <!-- BACKGROUND LAYER 2: Tactile CTA buttons -->
-    <div id="about" class="cta-wrapper absolute z-10 flex flex-col items-center justify-center text-center w-full px-4 gsap-reveal pointer-events-auto will-change-transform" style="scroll-margin-top: 90px;">
+    <div class="cta-wrapper absolute z-10 flex flex-col items-center justify-center text-center w-full px-4 gsap-reveal pointer-events-auto will-change-transform">
       <h2 class="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight text-silver-matte">About Alpha Delta<br>Veterinary Clinic</h2>
       <p class="text-muted-foreground text-lg md:text-xl mb-12 max-w-xl mx-auto font-light leading-relaxed">At Alpha Delta Vets, we understand that pets are family. Our clinic is staffed with a dedicated team of veterinary professionals who are committed to offering compassionate and quality care. With state-of-the-art facilities and a wide range of services, we strive to meet all your pet's health needs. We believe in building lasting relationships with our clients and their pets, ensuring that every visit is a positive experience. Join us in our mission to provide the best care for your furry companions..</p>
       <div class="flex flex-col sm:flex-row gap-6">
@@ -909,7 +909,6 @@
       .fromTo(".card-left-text", { x: -50, autoAlpha: 0 }, { x: 0, autoAlpha: 1, ease: "power4.out", duration: 1.5 }, "-=1.5")
       .fromTo(".card-right-text", { x: 50, autoAlpha: 0, scale: 0.8 }, { x: 0, autoAlpha: 1, scale: 1, ease: "expo.out", duration: 1.5 }, "<")
       .to({}, { duration: 2.5 })
-      .addLabel("about")
       .set(".hero-text-wrapper", { autoAlpha: 0 })
       .set(".cta-wrapper", { autoAlpha: 1 })
       .to({}, { duration: 1.5 })
@@ -924,6 +923,7 @@
         duration: 1.8
       }, "pullback")
       .to(".cta-wrapper", { scale: 1, filter: "blur(0px)", ease: "expo.inOut", duration: 1.8 }, "pullback")
+      .addLabel("about")
       .to(".main-card", { y: -window.innerHeight - 300, ease: "power3.in", duration: 1.5 });
   }, container);
 
@@ -980,7 +980,7 @@
   links.forEach(function (link) {
     link.addEventListener("click", function (event) {
       var id = link.getAttribute("href").slice(1);
-      var target = document.getElementById(id);
+      var target = id === "about" ? document.querySelector(".cta-wrapper") : document.getElementById(id);
       if (!target) return;
       event.preventDefault();
 
