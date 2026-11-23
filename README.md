@@ -1,30 +1,24 @@
 # Alpha Delta Veterinary Clinic
 
-A responsive, single-page veterinary clinic landing page (Home, Services, About Us, Book Appointment, Contact) with a premium blue healthcare design, scroll-scrubbed hero media, and an appointment-request form that opens a WhatsApp draft for the visitor to review and send.
+A static, responsive single-page clinic site with a premium blue visual identity, animated hero, service carousel, accessible navigation, and a separate glass-navigation demo.
 
 ## Run locally
 
-Open `index.html` in a modern browser. No build step, package installation, server, or database is required for this static preview.
+Open `index.html` in a modern browser. No build step, package installation, or database is required. For reliable video playback and local asset loading, serve this folder using a static HTTP server.
 
-## What works
+## Current page functionality
 
-- Responsive navigation (mobile menu, keyboard-operable, visible focus).
-- Home / Services / About Us / Book Appointment / Contact sections.
-- Appointment-request form with client-side validation and preserved input on error.
-- On valid submission, builds a WhatsApp click-to-chat draft for `+971 50 190 5318` (`971501905318`) and opens it in a new tab. The visitor must review and tap **Send**; this is an appointment **request**, not a confirmed booking.
-- Scroll-scrubbed hero video support: activates when a real `src` is added to `#heroVideo`; shows a poster placeholder otherwise and honors `prefers-reduced-motion`.
+- Responsive navigation with mobile toggle, keyboard access, and visible focus styles.
+- Home, About Us, and Services content, including six service cards and carousel controls.
+- Native “Coming Soon” dialog on the current calls to action.
+- Hero background video with playback control and reduced-motion handling.
+- Scroll-driven hero effects use GSAP and ScrollTrigger from a CDN; primary content remains visible if those scripts fail to load.
+- Main styles/scripts: `css/style.css` and `js/main.js`. Standalone navigation demo: `menu-bars/glass-navbar.html`, with adjacent CSS and JS.
 
-## Content and assets to replace before launch
+There is **no appointment form** on the current page. The navigation demo is separate from the clinic site.
 
-All clinic details, hours, service copy, team/facility photos, and the hero video are **sample placeholders** (marked with a "Sample" badge or placeholder text). Supplied so far:
-- WhatsApp number: `+971 50 190 5318` (international format `971501905318`).
+## Before launch
 
-Still needed from the clinic:
-- Verified address, phone, hours, and emergency instructions.
-- Approved service list and About Us copy.
-- Licensed/owned hero video (`assets/video.mp4`) and poster image; update `#heroVideo` and its `poster`.
-- Verified trust claims (licenses, accreditations, ratings) before publishing.
+Confirm the clinic's approved address, phone, hours, emergency instructions, service copy, and media rights. Add a canonical URL and production social-sharing URL/image once the public domain and preferred share asset are known.
 
-## Scope notes
-
-This is a static frontend only. There is no backend, database, automatic WhatsApp sending, availability checking, or appointment storage. Automatic messaging or persistent bookings require a new approved architecture (Phase 3+)."# adk-veterinary-website" 
+This is a static frontend: it has no backend, appointment intake, availability checking, or appointment storage.
