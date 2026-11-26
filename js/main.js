@@ -1,4 +1,30 @@
 (function () {
+  var revealTargets = document.querySelectorAll(".photo-gallery-section, .clinic-footer");
+  var footer = document.querySelector(".clinic-footer");
+  var mapFrame = document.querySelector("[data-footer-map]");
+  var supportsReveal = "IntersectionObserver" in window;
+  var reduceRevealMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (revealTargets.length && supportsReveal && !reduceRevealMotion) {
+    revealTargets.forEach(function (target) { target.classList.add("services-animations-ready"); });
+    var revealObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        var section = entry.target;
+        var revealTargetsInSection = Array.prototype.slice.call(section.querySelectorAll("[data-services-reveal]"));
+        var isVisible = entry.intersectionRatio >= 0.12;
+        section.classList.toggle("is-scroll-visible", isVisible);
+        if (section === footer && !entry.isIntersecting && mapFrame) {
+          mapFrame.classList.remove("is-map-pin-settled");
+        }
+        revealTargetsInSection.forEach(function (target) { target.classList.toggle("is-services-visible", isVisible); });
+      });
+    }, { threshold: [0, 0.12], rootMargin: "0px" });
+
+    revealTargets.forEach(function (target) { revealObserver.observe(target); });
+  } else {
+    revealTargets.forEach(function (target) { target.classList.add("is-scroll-visible"); });
+  }
+
   var section = document.querySelector(".services-section");
   if (!section) return;
 
@@ -331,12 +357,15 @@
   function updateActive() {
     navSpyFrame = 0;
     var services = document.getElementById("services");
+    var gallery = document.getElementById("gallery");
     if (pendingNavigation && Math.abs(window.scrollY - pendingNavigation.position) > 48) return;
     if (pendingNavigation) clearPendingNavigation();
     var trigger = getHeroTrigger();
     aboutScroll = getAboutScroll();
     if (trigger && window.scrollY >= trigger.start && window.scrollY < trigger.end) {
       setActive(aboutScroll !== null && window.scrollY >= aboutScroll - 2 ? "about" : "hero");
+    } else if (gallery && window.scrollY >= gallery.offsetTop - window.innerHeight * 0.35) {
+      setActive("gallery");
     } else if (services && window.scrollY >= services.offsetTop - window.innerHeight * 0.35) {
       setActive("services");
     } else if (aboutScroll !== null && window.scrollY >= aboutScroll) {
