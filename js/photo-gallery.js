@@ -16,7 +16,8 @@
     toggle.setAttribute("aria-expanded", String(expanded));
     back.hidden = !expanded;
     toggle.setAttribute("aria-label", expanded ? "Close clinic photo gallery" : "Open clinic photo gallery");
-    if (!expanded) toggle.focus();
+    if (expanded) back.focus();
+    else toggle.focus();
   }
 
   toggle.addEventListener("click", function () { setExpanded(true); });
