@@ -6,11 +6,13 @@
 
   var toggle = gallery.querySelector(".photo-gallery-toggle");
   var back = gallery.querySelector(".photo-gallery-back");
+  var stack = gallery.querySelector(".photo-gallery-stack");
   var grid = gallery.querySelector(".photo-gallery-grid");
-  if (!toggle || !back || !grid) return;
+  if (!toggle || !back || !stack || !grid) return;
 
   function setExpanded(expanded) {
     gallery.dataset.expanded = String(expanded);
+    stack.hidden = expanded;
     grid.hidden = !expanded;
     toggle.hidden = expanded;
     toggle.setAttribute("aria-expanded", String(expanded));
