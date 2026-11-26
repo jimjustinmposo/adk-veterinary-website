@@ -774,6 +774,7 @@
       background: linear-gradient(145deg, #eff6ff, #e2edff); color: #234777;
       box-shadow: inset 0 1px rgba(255,255,255,.9), 0 8px 20px -14px rgba(35,71,119,.6);
   }
+  .service-icon service-icon, .service-icon service-icon svg { display: block; width: 26px; height: 26px; }
   .service-index { color: #70809a; font-size: .72rem; font-weight: 700; letter-spacing: .14em; }
   .service-card h3 { margin: 2.25rem 0 .65rem; color: #172B52; font-size: clamp(1.2rem, 2vw, 1.5rem); font-weight: 750; letter-spacing: -.035em; }
   .service-card h3, .service-card p { overflow-wrap: anywhere; }
